@@ -1,0 +1,47 @@
+databaseChangeLog:
+  - changeSet:
+      id: 2026-10-06-10
+      author: calin
+      changes:
+        - addColumn:
+            tableName: invoices
+            columns:
+              - column:
+                  name: external_ref
+                  type: uuid
+                  defaultValueComputed: gen_random_uuid()
+  - changeSet:
+      id: 2026-10-06-11
+      author: calin
+      changes:
+        - addForeignKeyConstraint:
+            baseTableName: invoices
+            baseColumnNames: order_id
+            constraintName: fk_invoices_order
+            referencedTableName: orders
+            referencedColumnNames: id
+  - changeSet:
+      id: 2026-10-06-12
+      author: calin
+      changes:
+        - addUniqueConstraint:
+            tableName: invoices
+            columnNames: external_ref
+            constraintName: uq_invoices_external_ref
+  - changeSet:
+      id: 2026-10-06-13
+      author: calin
+      changes:
+        - renameColumn:
+            tableName: invoices
+            oldColumnName: total
+            newColumnName: total_amount
+  - changeSet:
+      id: 2026-10-06-14
+      author: calin
+      changes:
+        - sql:
+            sql: |
+              VACUUM FULL invoices;
+              CREATE TABLE invoice_notes (id bigint primary key, invoice_id bigint not null, note text);
+              CREATE INDEX idx_invoice_notes_invoice ON invoice_notes (invoice_id);

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.29.xsd">
+
+    <changeSet id="2026-10-06-01" author="calin">
+        <addColumn tableName="orders">
+            <column name="shipping_region" type="varchar(32)"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="2026-10-06-02" author="calin">
+        <createIndex tableName="orders" indexName="idx_orders_shipping_region">
+            <column name="shipping_region"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="2026-10-06-03" author="calin">
+        <sql>UPDATE orders SET shipping_region = 'EU' WHERE shipping_region IS NULL;</sql>
+    </changeSet>
+
+    <changeSet id="2026-10-06-04" author="calin">
+        <addNotNullConstraint tableName="orders" columnName="shipping_region"/>
+        <dropColumn tableName="orders" columnName="legacy_region_code"/>
+    </changeSet>
+</databaseChangeLog>

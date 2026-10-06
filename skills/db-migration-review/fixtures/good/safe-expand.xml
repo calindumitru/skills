@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog">
+    <changeSet id="2026-10-06-20" author="calin">
+        <sql>SET lock_timeout = '3s';
+             ALTER TABLE orders ADD COLUMN IF NOT EXISTS shipping_region varchar(32);</sql>
+        <rollback>ALTER TABLE orders DROP COLUMN IF EXISTS shipping_region;</rollback>
+    </changeSet>
+    <changeSet id="2026-10-06-21" author="calin" runInTransaction="false">
+        <preConditions onFail="MARK_RAN">
+            <not><indexExists indexName="idx_orders_shipping_region"/></not>
+        </preConditions>
+        <sql>CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_orders_shipping_region ON orders (shipping_region);</sql>
+        <rollback>DROP INDEX CONCURRENTLY IF EXISTS idx_orders_shipping_region;</rollback>
+    </changeSet>
+    <changeSet id="2026-10-06-22" author="calin">
+        <sql>SET lock_timeout = '3s';
+             ALTER TABLE orders ADD CONSTRAINT orders_shipping_region_nn CHECK (shipping_region IS NOT NULL) NOT VALID;</sql>
+        <rollback>ALTER TABLE orders DROP CONSTRAINT IF EXISTS orders_shipping_region_nn;</rollback>
+    </changeSet>
+    <changeSet id="2026-10-06-23" author="calin">
+        <sql>ALTER TABLE orders VALIDATE CONSTRAINT orders_shipping_region_nn;</sql>
+        <rollback/>
+    </changeSet>
+    <changeSet id="2026-10-06-24" author="calin">
+        <sql>SET lock_timeout = '3s';
+             ALTER TABLE orders ALTER COLUMN shipping_region SET NOT NULL;</sql>
+        <rollback>ALTER TABLE orders ALTER COLUMN shipping_region DROP NOT NULL;</rollback>
+    </changeSet>
+    <changeSet id="2026-10-06-25" author="calin">
+        <createTable tableName="shipping_zones">
+            <column name="id" type="bigint" autoIncrement="true"><constraints primaryKey="true"/></column>
+            <column name="code" type="varchar(16)"><constraints nullable="false"/></column>
+        </createTable>
+        <createIndex tableName="shipping_zones" indexName="idx_shipping_zones_code">
+            <column name="code"/>
+        </createIndex>
+    </changeSet>
+</databaseChangeLog>

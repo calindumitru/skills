@@ -1,0 +1,51 @@
+# Template: run the DB migration review on every PR that touches changelogs.
+# Include from your azure-pipelines.yml:
+#   - template: .claude/skills/db-migration-review/pipeline/azure-pipelines-db-review.yml
+# Requires the skill to be vendored in the repo at .claude/skills/db-migration-review.
+
+steps:
+  - checkout: self
+    fetchDepth: 0            # the script needs the merge-base with the target branch
+    persistCredentials: true
+
+  - bash: |
+      set -euo pipefail
+      curl -LsSf https://astral.sh/uv/install.sh | sh
+      echo "##vso[task.prependpath]$HOME/.local/bin"
+    displayName: Install uv
+
+  - bash: |
+      set -uo pipefail
+      TARGET="origin/$(echo "$(System.PullRequest.TargetBranch)" | sed 's#refs/heads/##')"
+      git fetch origin "+refs/heads/*:refs/remotes/origin/*" --quiet
+      mkdir -p "$(Build.ArtifactStagingDirectory)/db-review"
+      uv run --quiet .claude/skills/db-migration-review/scripts/review.py \
+        --base "$TARGET" \
+        --format both \
+        --output "$(Build.ArtifactStagingDirectory)/db-review/report" \
+        --fail-on critical
+      echo "##vso[task.setvariable variable=dbReviewExit]$?"
+      exit 0
+    displayName: Review Liquibase changesets
+    condition: eq(variables['Build.Reason'], 'PullRequest')
+
+  - publish: $(Build.ArtifactStagingDirectory)/db-review
+    artifact: db-migration-review
+    condition: eq(variables['Build.Reason'], 'PullRequest')
+
+  - bash: |
+      set -euo pipefail
+      BODY=$(python3 -c 'import json,sys; print(json.dumps({"comments":[{"parentCommentId":0,"content":open(sys.argv[1]).read(),"commentType":1}],"status":1}))' \
+             "$(Build.ArtifactStagingDirectory)/db-review/report.md")
+      URL="$(System.CollectionUri)$(System.TeamProject)/_apis/git/repositories/$(Build.Repository.ID)/pullRequests/$(System.PullRequest.PullRequestId)/threads?api-version=7.1"
+      curl -sS -X POST -H "Authorization: Bearer $(System.AccessToken)" -H "Content-Type: application/json" -d "$BODY" "$URL" > /dev/null
+    displayName: Post report as PR comment
+    condition: eq(variables['Build.Reason'], 'PullRequest')
+
+  - bash: |
+      if [ "$(dbReviewExit)" != "0" ]; then
+        echo "##vso[task.logissue type=error]DB migration review found CRITICAL findings. See the db-migration-review artifact or the PR comment."
+        exit 1
+      fi
+    displayName: Fail on critical findings
+    condition: eq(variables['Build.Reason'], 'PullRequest')

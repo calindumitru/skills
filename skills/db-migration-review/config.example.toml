@@ -1,0 +1,30 @@
+# Copy to <repo>/.db-migration-review.toml. Every key is optional.
+
+[database]
+# Shown in the report header.
+description = "Postgres 16, Azure Database for PostgreSQL Flexible Server (zone-redundant HA, D2ds_v5)"
+# Value recommended in fixes and expected as the first statement of DDL changesets.
+lock_timeout = "3s"
+
+[git]
+# Base ref used to discover new changelog files and to detect edited changesets.
+base_branch = "origin/main"
+
+[changelogs]
+# Only files under these directories are considered changelogs in default (new-files) mode.
+dirs = ["src/main/resources/db/changelog"]
+
+[source]
+# Directories grepped for entity / mapper references when a column or table is dropped or renamed.
+dirs = ["src/main/kotlin", "src/main/resources/mappers"]
+
+[tables]
+# Tiny reference tables: lock-related findings on these are downgraded to LOW (still listed).
+small = ["country", "currency"]
+
+[rules]
+# Rule ids to silence entirely.
+disabled = []
+# Per-rule level overrides. Levels: critical, high, medium, low.
+[rules.levels]
+# "PG-LOCK-001" = "critical"
