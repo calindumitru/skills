@@ -4,17 +4,18 @@ Claude Code skills I use across projects.
 
 | Skill | What it does |
 |---|---|
+| [slice-flow](skills/slice-flow) | My way of working on top of [Matt Pocock's engineering skills](https://github.com/mattpocock/skills): one `ready-for-agent` ticket goes to a builder agent picked by size label (Haiku for xs/s, Opus for m/l/escalate), up to an open PR; the main session reviews, the owner merges, and the ticket closes only once it is live and checked. Comes with the workflow map, the builder agents and the repo templates. |
+| [setup-slice-flow](skills/setup-slice-flow) | Wires a repo for the slice flow in one run: agents, `docs/building-slices.md`, the tracker additions (abandoned claims, fold-in ticket), the workflow map, the labels and the `CLAUDE.md` pointer. |
 | [db-migration-review](skills/db-migration-review) | Grades Liquibase changesets (XML, YAML, formatted SQL) by blue-green deployment risk on a hot Postgres database. Python checker with a CI exit code, plus the Claude skill that judges the rest. |
-| [slice-builders](skills/slice-builders) | Builder agents that take one `build:slice` issue to an open PR, with the model and effort picked by size label from the cost-vs-intelligence frontier (Haiku for xs/s, Opus for m/l/escalate, never Sonnet or Fable), plus the skill that picks and starts them. |
 
 ## Install a skill
 
 Personal (every repo):
 
 ```bash
-cp -R skills/db-migration-review ~/.claude/skills/
+for s in slice-flow setup-slice-flow; do rm -rf ~/.claude/skills/$s && cp -R skills/$s ~/.claude/skills/; done
 ```
 
 Per project (teammates get it too): copy it to `<repo>/.claude/skills/`.
 
-Each skill's README lists its one-off setup and example prompts.
+Each skill's README lists its one-off setup and example prompts. The slice flow assumes Matt's skills are installed the same way; then run `/setup-matt-pocock-skills` once in a repo, and `/setup-slice-flow` after it.
