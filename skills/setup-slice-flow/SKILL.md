@@ -13,14 +13,14 @@ Scaffold what the `slice-flow` skill and its builder agents assume in a repo. Pr
 - **Matt's skills:** `wayfinder`, `to-spec`, `to-tickets`, `code-review`, `tdd`, `pr`, `triage` and `setup-matt-pocock-skills` in `~/.claude/skills/` or `<repo>/.claude/skills/`. Name any that are missing; the flow calls them.
 - **His setup's output:** `docs/agents/issue-tracker.md`. Without it, stop and tell the owner to run `/setup-matt-pocock-skills` first: the tracker doc is where this setup appends.
 - **Prior output of this setup:** `.claude/agents/slice-builder-*.md`, `docs/building-slices.md`, `docs/agents/workflow.md`, a `## Slice flow` section in the tracker doc, a `### Slice flow` block in `CLAUDE.md` or `AGENTS.md`. Existing files get updated in place, never duplicated.
-- **The repo's own facts**, so you ask only for what it can't tell you: default branch (`git symbolic-ref refs/remotes/origin/HEAD`), package scripts or build files (install, typecheck, test, dev), a deploy workflow (`.github/workflows/*.yml` with a deploy job), a checks doc (`docs/local-checks.md` or similar), a spec and glossary at the root, existing labels (`gh label list`).
+- **The repo's own facts**, so you ask only for what it can't tell you: default branch (`git symbolic-ref refs/remotes/origin/HEAD`), package scripts or build files (install, typecheck, test, dev), a deploy workflow (`.github/workflows/*.yml` with a deploy job), a spec and glossary at the root, existing labels (`gh label list`).
 
 ## 2. Present and ask
 
 Summarise what is present and what is missing, then ask one round of questions, each led by the answer the exploration suggests so the owner can accept it in a word:
 
 1. **Run and test:** the install, typecheck, single-test, full-suite and run-the-app commands, and how a session picks a port.
-2. **Docs a slice updates:** the spec, glossary and infra notes, and where live-check sections go.
+2. **Docs a slice updates:** the spec, glossary and infra notes.
 3. **Deploy and live checks:** how a merge deploys, how to watch it, how to read the deployed version.
 4. **Repo rules:** migration, expand/contract, infrastructure or platform rules the builder must follow. Link the repo's own docs rather than restating them.
 5. **Never-rules:** profiles, secrets, environments a builder must not touch.
@@ -41,7 +41,7 @@ Everything else is fixed by the flow and needs no question.
 
    A `ready-for-agent` issue carries one `size:*` label and is built by the
    matching `slice-builder-*` agent up to an open PR; the main session
-   reviews, the owner merges, and the slice closes only once it is live and
+   reviews and merges, and the slice closes only once it is live and
    checked. Builder steps: `docs/building-slices.md`. The whole route:
    `docs/agents/workflow.md`.
    ```
