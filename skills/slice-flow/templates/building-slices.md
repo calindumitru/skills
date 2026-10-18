@@ -13,10 +13,13 @@ whole route is in [docs/agents/workflow.md](agents/workflow.md).
 - **The builder** works in its own worktree, up to an open PR with CI green,
   then reports back (step 8). It never merges or deploys.
 - **The main session** reviews the PR with `/code-review`, fixes it or sends
-  it back, reports to the owner, merges (squash) only when the owner says so,
-  watches the deploy, runs the live checks an agent can do now, and closes
-  the slice with the evidence. Anything that can't be checked yet becomes a
-  `check:owner` or `check:agent` issue outside the slice.
+  it back, reports to the owner, merges (squash) once the review passes and
+  CI is green, watches the deploy, runs the checks the PR's *After merge*
+  section marks *agent now*, and closes the slice with the evidence. It
+  waits for the owner's word only on a product decision the owner has not
+  made, or an `escalate` slice. Every *agent later* or *owner* check becomes
+  a `check:owner` or `check:agent` issue outside the slice, taken from that
+  section verbatim.
 
 ## Steps for the builder
 
@@ -51,15 +54,16 @@ whole route is in [docs/agents/workflow.md](agents/workflow.md).
      a bug to fix before the PR. Compare the behaviour the resolution
      describes too (what a tap, a drag or a resize does), not only the first
      paint.
-5. **Update the docs** the issue's Docs section names, and the live-checks
-   section *Repo-specific* points at.
+5. **Update the docs** the issue's Docs section names.
 6. **Open the PR** to the default branch. Commit in small steps and push.
    - **Title:** an imperative sentence naming the change.
    - **Body:** call the Skill tool with `pr` (Summary, Evidence, Merge
      Danger), then add one more section, **After merge**: what the deploy
      applies and which live checks to run, each marked *agent now*, *agent
-     later (when)* or *owner*, so the main session knows which check tasks
-     to write. For a slice built from a prototype, Evidence holds the
+     later (when)* or *owner*, with the exact steps and what passing looks
+     like. This section is the only place the slice's checks are written:
+     the main session runs the *agent now* ones and makes check tasks from
+     the rest verbatim. For a slice built from a prototype, Evidence holds the
      side-by-side screenshots (prototype left, build right, both widths) and
      the difference list, each marked intended or fixed.
    - **No closing keyword before an issue number** (close, closes, closed,
@@ -105,8 +109,7 @@ points at the code the owner saw and the build is checked against it.
 - **Install and test:** `<install command>`; typecheck `<command>`; one test
   file `<command>`; full suite `<command>`.
 - **Run the app locally:** `<commands, with how to pick a port>`.
-- **Docs a slice updates:** `<spec file, glossary, infra notes>`; live-check
-  sections go in `<docs/local-checks.md>`.
+- **Docs a slice updates:** `<spec file, glossary, infra notes>`.
 - **Deploy and live checks:** `<how a merge deploys, how to watch it, how to
   read the deployed version>`.
 - **Repo rules the builder follows:** `<migrations, expand/contract,

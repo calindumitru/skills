@@ -26,7 +26,7 @@ flowchart TB
     end
     subgraph ship [Ship]
         direction TB
-        merge["owner says merge"] --> deploy["deploy watched"] --> checks["live checks"]
+        merge["merge, review and CI green"] --> deploy["deploy watched"] --> checks["live checks"]
     end
 
     idea -.-> map
@@ -94,13 +94,13 @@ stateDiagram-v2
         Building --> PullRequest: /tdd at the seams, CI green
         PullRequest --> Review: /code-review by the main session
         Review --> Building: changes asked
-        Review --> Merged: owner says merge
+        Review --> Merged: review passed and CI green
     }
     Implement --> PullRequest: /implement here
 
     state "Ship" as Ship {
         Merged --> Deployed: deploy watched
-        Deployed --> LiveChecks: the repo's checks doc
+        Deployed --> LiveChecks: the PR's After merge section
         LiveChecks --> Closed: evidence posted
         LiveChecks --> CheckTask: cannot check yet
         CheckTask: Check task for the owner or an agent
@@ -133,7 +133,9 @@ stateDiagram-v2
   spec and glossary. `/to-tickets` cuts it into vertical slices, each
   `ready-for-agent` with a size from the table in the `slice-flow` skill.
 - **Build** is one ticket per builder session, in its own worktree, up to an
-  open PR with CI green. The main session reviews, the owner merges. A slice
+  open PR with CI green. The main session reviews and merges once the review
+  passes and CI is green; the owner is asked only on a product decision the
+  owner has not made, or an `escalate` slice. A slice
   built from a prototype is checked against the prototype's code, not its
   prose ([building-slices.md](../building-slices.md)).
 - **Ship** closes the ticket only after the deploy and the live checks an
