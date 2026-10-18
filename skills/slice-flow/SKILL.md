@@ -13,7 +13,7 @@ Every open slice carries exactly one size label, set by **amount of work** when 
 
 | Label | Amount of work | Agent | Model | Effort |
 |---|---|---|---|---|
-| `size:xs` | Text, docs or config only. No logic. | `slice-builder-xs` | Haiku | high |
+| `size:xs` | Text, docs or config only. No logic. | the main session itself, on a branch of its own | (yours) | (yours) |
 | `size:s` | A vertical slice so small that one layer changes: one endpoint, one UI piece, one parser, one adapter on an existing pattern. No migration, no infrastructure. | `slice-builder-s` | Haiku | xhigh |
 | `size:m` | One vertical slice across layers on patterns already in the code; or any migration or infrastructure change. | `slice-builder-m` | Opus | medium |
 | `size:l` | Several slices' worth: new storage shapes, several adapters, or changes across many layers at once. | `slice-builder-l` | Opus | high |
@@ -21,15 +21,16 @@ Every open slice carries exactly one size label, set by **amount of work** when 
 
 - **On the boundary between s and m, it's m.** Haiku only where a mistake would be caught by the tests.
 - **A slice built from a prototype is at least m**, whatever its amount of work: matching a look is a judgement call.
+- **xs is yours.** The main session builds a `size:xs` slice itself (no builder, no worktree hand-off) and one reviewer carries both review axes; every other size gets a builder and the two-axis review.
 - **Never Sonnet or Fable for implementation**, even when an agent file is missing: fall back to a general-purpose agent with the table's model and effort, in worktree isolation. The numbers behind the table are in this skill's README.
 
 ## Steps
 
-1. **Pick.** The frontier is every open `ready-for-agent` ticket with no open blocker and no live claim (`docs/agents/issue-tracker.md` says what counts as abandoned). If the owner named a ticket, take that one. Claim it by assigning it before anything else. Run slices in parallel only when they touch different files and need different ports.
+1. **Pick.** The frontier is every open `ready-for-agent` ticket with no open blocker and no live claim (`docs/agents/issue-tracker.md` says what counts as abandoned); where the repo has `scripts/frontier.sh`, run it, and treat a slice it flags `shipped?` as the tracker doc says (strip its labels, ticket its checks, close it, never rebuild it). If the owner named a ticket, take that one. Claim it by assigning it before anything else. Run slices in parallel only when they touch different files and need different ports.
 2. **Start the builder** from the table, with the issue URL. Done when the builder reports: PR URL, CI state, what it checked with numbers, judgement calls, anything left open.
 3. **Review.** Call the Skill tool with `code-review` on the PR. Fix small things or send it back; a rebuild after a failed review goes to `slice-builder-escalated`. A product decision the issue leaves open goes to the owner, never guessed; a product *question* becomes a `wayfinder:grilling` ticket on the relevant map, not an answer inside the slice.
-4. **Report and merge.** Tell the owner: PR, CI, what was checked, judgement calls, open points. Then merge (squash) once the review passes and CI is green, without asking. Wait for the owner's word only when the review or the builder flags a product decision the owner has not made, or the slice carries `escalate`. Watch the deploy until it is live. Done when the deployed version is the merged commit.
-5. **Check and close.** The PR body's *After merge* section lists the slice's live checks, each marked *agent now*, *agent later (when)* or *owner*. Run every *agent now* check and post the evidence on the slice. Close it when every check passes. Each *agent later* or *owner* check becomes a **check task** (below) outside the slice; a failed check keeps the slice open and goes back to the builder, or to the owner when it is a product call. Done when the slice is closed or has a check task for everything still open.
+4. **Report and merge.** Tell the owner: PR, CI, what was checked, judgement calls, open points. Then merge (squash) once the review passes and CI is green, without asking. Wait for the owner's word only when the review or the builder flags a product decision the owner has not made, or the slice carries `escalate`. Watch the deploy until it is live. Done when the deployed version is the merged commit, or, where the repo skips deploys for docs-only merges, when the two differ only by files that deploy ignores (the repo's own currency check says how).
+5. **Check and close.** The PR body's *After merge* section lists the slice's live checks, each marked *agent now*, *agent later (when)* or *owner*. Run every *agent now* check and post the evidence on the slice. Close it when every check passes. Each *agent later* or *owner* check becomes a **check task** (below) outside the slice; a failed check keeps the slice open and goes back to the builder, or to the owner when it is a product call. Done when the slice is closed or has a check task for everything still open. Then remove the builder's worktree and branch (where the repo has `scripts/prune-worktrees.sh`, a dry run and then `--apply`).
 
 ## Check tasks
 
