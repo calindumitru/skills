@@ -1,6 +1,6 @@
 # slice-flow
 
-My way of shipping with agents, on top of [Matt Pocock's engineering skills](https://github.com/mattpocock/skills). His skills take an idea to a spec and tickets (`/grill-with-docs`, `/wayfinder`, `/to-spec`, `/to-tickets`) and review the result (`/code-review`). The slice flow is what happens between: a **slice** (a `ready-for-agent` ticket with a size label) goes to a **builder** agent picked by size, up to an open PR with CI green; the **main session** reviews it, the **owner** merges, and the slice closes only once it is live and checked.
+My way of shipping with agents, on top of [Matt Pocock's engineering skills](https://github.com/mattpocock/skills). His skills take an idea to a spec and tickets (`/grill-with-docs`, `/wayfinder`, `/to-spec`, `/to-tickets`) and review the result (`/code-review`). The slice flow is what happens between: a **slice** (a `ready-for-agent` ticket with a size label) goes to a **builder** agent picked by size, up to an open PR with CI green; the **main session** reviews and merges it, and the slice closes only once it is live and checked.
 
 Two skills, one set of agents, three repo templates:
 
@@ -35,7 +35,7 @@ flowchart TB
     end
     subgraph ship [Ship]
         direction TB
-        merge["owner says merge"] --> deploy["deploy watched"] --> checks["live checks"]
+        merge["merge, review and CI green"] --> deploy["deploy watched"] --> checks["live checks"]
     end
 
     idea -.-> map
@@ -105,13 +105,13 @@ stateDiagram-v2
         Building --> PullRequest: /tdd at the seams, CI green
         PullRequest --> Review: /code-review by the main session
         Review --> Building: changes asked
-        Review --> Merged: owner says merge
+        Review --> Merged: review passed and CI green
     }
     Implement --> PullRequest: /implement here
 
     state "Ship" as Ship {
         Merged --> Deployed: deploy watched
-        Deployed --> LiveChecks: the repo's checks doc
+        Deployed --> LiveChecks: the PR's After merge section
         LiveChecks --> Closed: evidence posted
         LiveChecks --> CheckTask: cannot check yet
         CheckTask: Check task for the owner or an agent
@@ -140,11 +140,11 @@ Mermaid can't show colons, so the labels read: the map is `wayfinder:map`, the f
 | Gap in the default flow | What the slice flow does |
 |---|---|
 | Implementer agents inherit the parent model. | A size label routes each ticket to Haiku or Opus at a set effort, from the cost-vs-intelligence frontier (below). Never Sonnet or Fable. |
-| `/implement` reviews its own work in the same context. | The builder stops at an open PR. The main session reviews with `/code-review`, and the owner merges. |
+| `/implement` reviews its own work in the same context. | The builder stops at an open PR. The main session reviews with `/code-review` and merges once the review passes and CI is green; the owner is asked only on a product decision not yet made, or an `escalate` slice. |
 | Nothing happens after code review. | A slice closes only after the deploy and the live checks an agent can run now. What can't be checked yet becomes a `check:owner` or `check:agent` task, so no slice and no session waits. |
 | A wayfinder map hands off by convention, and an empty frontier reads as done. | The fold-in is a `wayfinder:task` on the map, created when the last decision it needs closes. An assigned ticket with no comment from its assignee is abandoned, not claimed. |
 | `/prototype` folds the decision into code, and the builder reads prose. | A slice built from a prototype names branch, commit, variant and file as an acceptance criterion, the builder reads that code first, and the PR shows the two side by side. The resolution lists the intended differences. |
-| `/pr` has no view past merge. | The PR body gains an **After merge** section: what the deploy applies and which checks to run, marked agent now, agent later or owner. |
+| `/pr` has no view past merge. | The PR body gains an **After merge** section: what the deploy applies and which checks to run, marked agent now, agent later or owner. It is the only place a slice's live checks are written; check tasks are made from it verbatim. |
 
 ## Sizes and models
 
