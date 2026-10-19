@@ -22,7 +22,7 @@ flowchart TB
     end
     subgraph build [Build]
         direction TB
-        builder["builder by size"] --> pr["PR, CI green"] --> review["/code-review"]
+        builder["builder by size"] --> pr["PR, CI green"] --> review["reviewer agents"]
     end
     subgraph ship [Ship]
         direction TB
@@ -92,7 +92,7 @@ stateDiagram-v2
     state "Build (docs/building-slices.md)" as Build {
         Ready --> Building: builder agent by size
         Building --> PullRequest: /tdd at the seams, CI green
-        PullRequest --> Review: /code-review by the main session
+        PullRequest --> Review: the reviewer agents, by the main session
         Review --> Building: changes asked
         Review --> Merged: review passed and CI green
     }
@@ -147,7 +147,7 @@ stateDiagram-v2
   `check:agent`.
 - **Retro** runs in the session that built, before it is cleared, and
   changes the environment: these docs, the checks, the standards
-  `/code-review` enforces.
+  the reviewer agents enforce.
 
 ## On-ramps
 

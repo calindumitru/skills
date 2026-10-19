@@ -12,7 +12,7 @@ whole route is in [docs/agents/workflow.md](agents/workflow.md).
   the issue's size label (`escalate` wins) and starts it with the issue URL.
 - **The builder** works in its own worktree, up to an open PR with CI green,
   then reports back (step 8). It never merges or deploys.
-- **The main session** reviews the PR with `/code-review`, fixes it or sends
+- **The main session** reviews the PR with the `slice-reviewer-*` agents, fixes it or sends
   it back, reports to the owner, merges (squash) once the review passes and
   CI is green, watches the deploy, runs the checks the PR's *After merge*
   section marks *agent now*, and closes the slice with the evidence. It
