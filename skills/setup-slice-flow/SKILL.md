@@ -33,6 +33,7 @@ Everything else is fixed by the flow and needs no question.
 2. **`docs/building-slices.md`** from `../slice-flow/templates/building-slices.md`, with only the *Repo-specific* section's placeholders filled from the answers. Where the file already exists, keep any repo-specific content it has beyond that section only if the owner wants it; the generic steps come from the template.
 3. **Tracker doc:** append `../slice-flow/templates/issue-tracker-addendum.md` to `docs/agents/issue-tracker.md` unless a `## Slice flow` section is already there (then replace that section).
 4. **`docs/agents/workflow.md`** from `../slice-flow/templates/workflow.md`, as is.
+5. **`docs/agents/briefs.md`** from `../slice-flow/templates/briefs.md`: fill the repo name and the ship command in its placeholders.
 5. **Labels**, created only where missing, with `gh label create <name> --description "..." --color <hex> --force`: `size:xs`, `size:s`, `size:m`, `size:l` (`c5def5`), `escalate` (`b60205`), `check:owner` and `check:agent` (`fbca04`). `ready-for-agent` and `ready-for-human` come from Matt's setup; create them the same way if that setup skipped its label section. Where the repo already uses other names for the same roles (for example `build:slice` for `ready-for-agent`), ask whether to relabel the open issues now and do it with `gh issue edit --add-label/--remove-label`, closed issues left as they are.
 6. **`CLAUDE.md` or `AGENTS.md`** (whichever exists; Matt's setup chose): under its `## Agent skills` heading add
 
