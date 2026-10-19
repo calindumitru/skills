@@ -18,15 +18,17 @@ Send the builder agent exactly this, with the placeholders filled:
 Nothing else. The size table, the PR shape, the never-rules and the check
 rules are in the docs the brief names.
 
-## Single-reviewer brief
+## Reviewer briefs
 
-For a docs-only PR (CI skipped the app and infra jobs), one reviewer carries
-both axes of the `code-review` skill, on Opus at `low` effort:
+The reviewer agents in `.claude/agents/` carry their own instructions; the
+main session sends each only this:
 
-> Review PR <n> on both axes. Standards: `CODING_STANDARDS.md` and the docs
-> it points at. Spec: issue <n>'s Scope and Acceptance. Open every pointer
-> the diff adds and confirm the target says what the line claims. Report as
-> `docs/agents/briefs.md` → Report (reviewer).
+> Review PR <n>: fixed point `<default branch>`, worktree `<path>`, issue
+> <n>. <One line on what other builders touch, when it matters.>
+
+Two agents for a code PR (`slice-reviewer-standards`, `slice-reviewer-spec`),
+one for a docs-only PR (`slice-reviewer-docs`), effort by the size table in
+the `slice-flow` skill.
 
 ## Report
 

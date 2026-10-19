@@ -31,7 +31,7 @@ flowchart TB
     end
     subgraph build [Build]
         direction TB
-        builder["builder by size"] --> pr["PR, CI green"] --> review["/code-review"]
+        builder["builder by size"] --> pr["PR, CI green"] --> review["reviewer agents"]
     end
     subgraph ship [Ship]
         direction TB
@@ -64,7 +64,7 @@ flowchart TB
     style ship fill:#F7FCFA,stroke:#9FE1CB
 ```
 
-Decisions happen on the left and produce decisions, never code. Code happens on the right, one ticket per session. The only way from one side to the other is a spec. `/retro` after shipping changes the environment the next decide starts from: these docs, the checks, the standards `/code-review` enforces.
+Decisions happen on the left and produce decisions, never code. Code happens on the right, one ticket per session. The only way from one side to the other is a spec. `/retro` after shipping changes the environment the next decide starts from: these docs, the checks, the standards the reviewer agents enforce.
 
 ## The full map
 
@@ -103,7 +103,7 @@ stateDiagram-v2
     state "Build (docs/building-slices.md)" as Build {
         Ready --> Building: builder agent by size
         Building --> PullRequest: /tdd at the seams, CI green
-        PullRequest --> Review: /code-review by the main session
+        PullRequest --> Review: the reviewer agents, by the main session
         Review --> Building: changes asked
         Review --> Merged: review passed and CI green
     }
