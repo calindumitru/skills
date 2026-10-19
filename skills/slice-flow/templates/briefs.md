@@ -40,10 +40,10 @@ before prose, each item one line where it can be:
 4. Judgement calls, one line each.
 5. Open points.
 
-Write it as the `unslop` skill says (rules 13, 16, 20, 23, 27, 33): plain
-words, whole sentences, no bold label that restates its line, no filler, no
-closing remark. The main session pastes the numbers into the PR and the
-issue, so a figure left out is a figure lost.
+Write it as the `unslop` skill says (rules 13, 16, 20, 23, 31, 33): no em
+dashes, no bold label that restates its line, no closing remark, no filler,
+plain words, whole sentences. The main session pastes the numbers into the
+PR and the issue, so include every figure you measured.
 
 ## Ship
 
