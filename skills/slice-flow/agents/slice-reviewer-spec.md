@@ -1,6 +1,6 @@
 ---
 name: slice-reviewer-spec
-description: Reviews one PR on the Spec axis of Matt Pocock's code-review skill (the originating issue against the diff), on Opus; the main session passes effort by the slice's size. Start it with the PR number, the fixed point, the worktree and the issue. Never merges.
+description: Reviews one PR on the Spec axis of Matt Pocock's code-review skill (the originating issue against the diff); the Claude fallback when GPT is unavailable. Start it with the PR number, the fixed point, the worktree and the issue. Never merges.
 model: opus
 effort: medium
 isolation: none

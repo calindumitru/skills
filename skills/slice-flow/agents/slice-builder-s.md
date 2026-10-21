@@ -1,8 +1,8 @@
 ---
 name: slice-builder-s
 description: Builds one ready-for-agent slice labelled size:s, from its issue up to an open PR with CI green. Start it with the issue URL. Use it only for issues with that label and without escalate; docs/building-slices.md has the steps.
-model: haiku
-effort: xhigh
+model: opus
+effort: medium
 isolation: worktree
 color: green
 ---

@@ -2,7 +2,7 @@
 name: slice-builder-escalated
 description: Builds one ready-for-agent slice labelled escalate (any size), from its issue up to an open PR with CI green. Start it with the issue URL. Use it for every slice with that label, and for a rebuild after a failed review; docs/building-slices.md has the steps.
 model: opus
-effort: xhigh
+effort: medium
 isolation: worktree
 color: red
 ---

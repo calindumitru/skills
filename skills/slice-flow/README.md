@@ -139,7 +139,7 @@ Mermaid can't show colons, so the labels read: the map is `wayfinder:map`, the f
 
 | Gap in the default flow | What the slice flow does |
 |---|---|
-| Implementer agents inherit the parent model. | A size label routes each ticket to Haiku or Opus at a set effort, from the cost-vs-intelligence frontier (below). Never Sonnet or Fable. |
+| Implementer agents inherit the parent model. | A size label routes each ticket to its builder agent; every agent runs on one model pair from the cost-vs-intelligence frontier (below): GPT first, Claude as fallback. Never Sonnet or Fable. |
 | `/implement` reviews its own work in the same context. | The builder stops at an open PR. The main session reviews with `/code-review` and merges once the review passes and CI is green; the owner is asked only on a product decision not yet made, or an `escalate` slice. |
 | Nothing happens after code review. | A slice closes only after the deploy and the live checks an agent can run now. What can't be checked yet becomes a `check:owner` or `check:agent` task, so no slice and no session waits. |
 | A wayfinder map hands off by convention, and an empty frontier reads as done. | The fold-in is a `wayfinder:task` on the map, created when the last decision it needs closes. An assigned ticket with no comment from its assignee is abandoned, not claimed. |
@@ -148,22 +148,33 @@ Mermaid can't show colons, so the labels read: the map is `wayfinder:map`, the f
 
 ## Sizes and models
 
-| Label | Amount of work | Agent | Model · effort |
-|---|---|---|---|
-| `size:xs` | Text, docs or config only | `slice-builder-xs` | Haiku · high |
-| `size:s` | A vertical slice so small that one layer changes | `slice-builder-s` | Haiku · xhigh |
-| `size:m` | One vertical slice across layers; any migration or infrastructure | `slice-builder-m` | Opus · medium |
-| `size:l` | Several slices' worth in one issue | `slice-builder-l` | Opus · high |
-| `escalate` (wins) | A costly mistake, or a rebuild after a failed review | `slice-builder-escalated` | Opus · xhigh |
+| Label | Amount of work | Agent |
+|---|---|---|
+| `size:xs` | Text, docs or config only | the main session |
+| `size:s` | A vertical slice so small that one layer changes | `slice-builder-s` |
+| `size:m` | One vertical slice across layers; any migration or infrastructure | `slice-builder-m` |
+| `size:l` | Several slices' worth in one issue | `slice-builder-l` |
+| `escalate` (wins) | A costly mistake, or a rebuild after a failed review | `slice-builder-escalated` |
 
-From the cost-vs-intelligence Pareto frontier on [slopalytics.com](https://slopalytics.com/) (Artificial Analysis data, October 2026): Haiku high/xhigh and Opus medium/high/xhigh sit on the frontier, at roughly 38 / 41 / 51 / 54 / 56 on the intelligence index for about $0.08 / $0.12 / $1.34 / $1.82 / $3.46 a benchmark task. An Opus setting beats every Sonnet and Fable setting on both axes, except Sonnet high (46.8, $0.88), which buys fewer points per dollar than going on to Opus medium. Opus low is beaten by Haiku max; Opus max adds 1.6 points for 73% more cost. Nothing sits between Haiku's ceiling (41–43) and Opus medium (51), which is why a slice on the s/m boundary is m. Re-check the chart when new models ship, and update the table and the agents together.
+Every agent, builders and reviewers alike, runs on one pair for now (the owner, 2026-10-21):
+
+| | Model · effort | Intelligence | Cost a task | Time a task |
+|---|---|---|---|---|
+| First choice | GPT-6.1 Sol · xhigh, through `scripts/codex-agent.sh` | 51.0 | $0.39 | 5.0 min |
+| Fallback | Claude Opus 5.5 · medium, the agent files | 51.2 | $1.34 | 3.4 min |
+
+From the cost-vs-intelligence Pareto frontier on [slopalytics.com](https://slopalytics.com/) (Artificial Analysis data, re-read 2026-10-21, max and no-reasoning settings hidden). Across GPT and Claude the frontier runs GPT-6 Luna, Haiku 5.5 low to xhigh, GPT-6.1 Sol low to xhigh, then Opus 5.5 medium, high and xhigh. GPT-6.1 Sol xhigh matches Opus medium's intelligence at under a third of the cost; Opus medium is the nearest Claude setting, so a fallback costs no intelligence. No Sonnet, Fable, GPT-6 Astra, Gemini or Grok setting sits on the frontier.
+
+Per-size pairs, for when the owner splits them again: s on GPT-6.1 Sol low (42.1, $0.13) with Haiku xhigh (41.2, $0.12) as fallback; l on Opus high (53.6, $1.82) with GPT-6.1 Sol xhigh; escalate on Opus xhigh (56.0, $3.46) with GPT-6 Astra xhigh (52.4, $2.31). Re-check the chart when new models ship, and update SKILL.md, this table, the agents and the script's defaults together.
+
+The script runs `codex exec` with the agent file's body and the brief as the prompt. A builder gets a fresh worktree and a sandbox that writes only there and in the repo's git dir, with network on for `git push` and `gh`; a reviewer runs read-only. It exits 75 when GPT is unavailable (no CLI, a usage limit, a refused model), so the main session starts the Claude agent instead.
 
 ## Install
 
 1. Matt's skills, then this repo's two skills into `~/.claude/skills/` (the root README has the one-liner).
 2. In each repo: `/setup-matt-pocock-skills`, then `/setup-slice-flow`. The second one copies the agents, writes `docs/building-slices.md` with only its *Repo-specific* section asked about, appends to the tracker doc, writes `docs/agents/workflow.md`, creates the labels and points `CLAUDE.md` at it all.
 
-Sessions started outside a repo don't load its `.claude/agents/`: the skill then falls back to a general-purpose agent with the same model, effort and worktree isolation.
+Sessions started outside a repo don't load its `.claude/agents/`: install the agents at user scope (`ln -s ~/.claude/skills/slice-flow/agents/slice-*.md ~/.claude/agents/`), or the skill falls back to a general-purpose agent on Opus medium with worktree isolation. The GPT path needs the Codex CLI signed in (`codex login`); the script also finds the copy inside the ChatGPT app.
 
 ## Example prompts
 

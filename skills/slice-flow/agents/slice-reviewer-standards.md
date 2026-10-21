@@ -1,6 +1,6 @@
 ---
 name: slice-reviewer-standards
-description: Reviews one PR on the Standards axis of Matt Pocock's code-review skill (documented standards plus his smell baseline), on Opus; the main session passes effort by the slice's size. Start it with the PR number, the fixed point and the worktree. Never merges.
+description: Reviews one PR on the Standards axis of Matt Pocock's code-review skill (documented standards plus his smell baseline); the Claude fallback when GPT is unavailable. Start it with the PR number, the fixed point and the worktree. Never merges.
 model: opus
 effort: medium
 isolation: none
