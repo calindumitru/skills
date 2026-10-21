@@ -1,8 +1,8 @@
 ---
 name: slice-reviewer-docs
-description: Reviews one docs-only PR on both axes of Matt Pocock's code-review skill in one pass, when CI skipped the code jobs. Start it with the PR number, the fixed point, the worktree and the issue; effort low. Never merges.
+description: Reviews one docs-only PR on both axes of Matt Pocock's code-review skill in one pass, when CI skipped the code jobs. Start it with the PR number, the fixed point, the worktree and the issue. Never merges.
 model: opus
-effort: low
+effort: medium
 isolation: none
 color: yellow
 ---

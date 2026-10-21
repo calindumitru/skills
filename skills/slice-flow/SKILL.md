@@ -11,25 +11,35 @@ A **slice** is a `ready-for-agent` ticket: a tracer-bullet vertical slice that `
 
 Every open slice carries exactly one size label, set by **amount of work** when the slice is written, without asking the owner, and relabelled when a rewrite changes the amount. `escalate` goes on top when a mistake would be costly, and wins.
 
-| Label | Amount of work | Agent | Model | Effort |
-|---|---|---|---|---|
-| `size:xs` | Text, docs or config only. No logic. | the main session itself, on a branch of its own | (yours) | (yours) |
-| `size:s` | A vertical slice so small that one layer changes: one endpoint, one UI piece, one parser, one adapter on an existing pattern. No migration, no infrastructure. | `slice-builder-s` | Haiku | xhigh |
-| `size:m` | One vertical slice across layers on patterns already in the code; or any migration or infrastructure change. | `slice-builder-m` | Opus | medium |
-| `size:l` | Several slices' worth: new storage shapes, several adapters, or changes across many layers at once. | `slice-builder-l` | Opus | high |
-| `escalate` (with any size; wins) | A mistake is costly: security, credentials, privacy, deletion, data migrations on live data. Also any rebuild after a failed review. | `slice-builder-escalated` | Opus | xhigh |
+| Label | Amount of work | Agent |
+|---|---|---|
+| `size:xs` | Text, docs or config only. No logic. | the main session itself, on a branch of its own |
+| `size:s` | A vertical slice so small that one layer changes: one endpoint, one UI piece, one parser, one adapter on an existing pattern. No migration, no infrastructure. | `slice-builder-s` |
+| `size:m` | One vertical slice across layers on patterns already in the code; or any migration or infrastructure change. | `slice-builder-m` |
+| `size:l` | Several slices' worth: new storage shapes, several adapters, or changes across many layers at once. | `slice-builder-l` |
+| `escalate` (with any size; wins) | A mistake is costly: security, credentials, privacy, deletion, data migrations on live data. Also any rebuild after a failed review. | `slice-builder-escalated` |
 
-- **On the boundary between s and m, it's m.** Haiku only where a mistake would be caught by the tests.
-- **A slice built from a prototype is at least m**, whatever its amount of work: matching a look is a judgement call.
+- **On the boundary between s and m, it's m.** **A slice built from a prototype is at least m**: matching a look is a judgement call.
 - **xs is yours.** The main session builds a `size:xs` slice itself (no builder, no worktree hand-off) and one reviewer carries both review axes; every other size gets a builder and the two-axis review.
-- **Reviewers** run on Opus, never the inherited model, with effort by size: `low` for xs and docs-only, `medium` for s, `high` for m, l and escalate; never `xhigh`. The agent files carry `model: opus`; the main session passes `effort`.
-- **Never Sonnet or Fable for implementation**, even when an agent file is missing: fall back to a general-purpose agent with the table's model and effort, in worktree isolation. The numbers behind the table are in this skill's README.
+
+## Models
+
+**One pair for every size and every reviewer, for now (the owner, 2026-10-21).** The size still picks the agent, its instructions and the review; it no longer picks the model.
+
+| | Model · effort | Intelligence | Cost a task | Runs through |
+|---|---|---|---|---|
+| First choice | GPT-6.1 Sol · xhigh | 51.0 | $0.39 | this skill's `scripts/codex-agent.sh` (the Codex CLI) |
+| Fallback | Claude Opus 5.5 · medium | 51.2 | $1.34 | the Agent tool with the agent's name (its file says `model: opus`, `effort: medium`) |
+
+- **Start every agent on the first choice:** write the brief to a file and run `scripts/codex-agent.sh <agent> <repo> <brief> <report>` in the background (a builder runs for many minutes). A builder gets its own worktree under `.claude/worktrees/`; a reviewer runs read-only in the PR's worktree.
+- **Fall back** when the script exits non-zero: 75 means GPT is unavailable (no CLI, usage limit, model refused), anything else a failed run. Start the Claude agent of the same name with the same brief, and remove a GPT worktree that left no PR. Never retry a failed run on GPT, and say in the report which model built and reviewed.
+- **Never Sonnet or Fable**, even when an agent file is missing: fall back to a general-purpose agent on Opus medium, in worktree isolation. The numbers behind the pair are in this skill's README.
 
 ## Steps
 
 1. **Pick.** The frontier is every open `ready-for-agent` ticket with no open blocker and no live claim (`docs/agents/issue-tracker.md` says what counts as abandoned); where the repo has `scripts/frontier.sh`, run it, and treat a slice it flags `shipped?` as the tracker doc says (strip its labels, ticket its checks, close it, never rebuild it). If the owner named a ticket, take that one. Claim it by assigning it before anything else. **A session takes at most three slices**, then posts its map note and ends; a slice that should run at the same time as another runs in its own session (`start_session`, fresh context), never as a subagent of this thread, because this thread's whole context is re-read on every turn (one session of ten slices re-read 250M cached tokens). Slices run in parallel only when they touch different files and need different ports.
-2. **Start the builder** from the table, with the brief in `docs/agents/briefs.md` (where the repo has it; else this skill's `templates/briefs.md`): the issue URL and the lines the issue can't carry, nothing restated from the docs. Done when the builder reports in the brief's report shape: PR URL, CI state, numbers first, judgement calls, open points, under 200 words.
-3. **Review.** Spawn the two reviewer agents together, `slice-reviewer-standards` and `slice-reviewer-spec`, each with the PR number, the fixed point (the default branch) and the issue, with `effort` from the table below; a docs-only PR (CI skipped the code jobs) gets `slice-reviewer-docs` alone. Present their reports side by side under `## Standards` and `## Spec`, never merged or reranked: a change can pass one axis and fail the other. Fix small things or send it back; a rebuild after a failed review goes to `slice-builder-escalated`. A product decision the issue leaves open goes to the owner, never guessed; a product *question* becomes a `wayfinder:grilling` ticket on the relevant map, not an answer inside the slice.
+2. **Start the builder** from the tables (agent by size, model by *Models*), with the brief in `docs/agents/briefs.md` (where the repo has it; else this skill's `templates/briefs.md`): the issue URL and the lines the issue can't carry, nothing restated from the docs. Done when the builder reports in the brief's report shape: PR URL, CI state, numbers first, judgement calls, open points, under 200 words.
+3. **Review.** Start the two reviewer agents together, `slice-reviewer-standards` and `slice-reviewer-spec`, each with the PR number, the fixed point (the default branch) and the issue, on the first choice with the fallback as *Models* says; a docs-only PR (CI skipped the code jobs) gets `slice-reviewer-docs` alone. Present their reports side by side under `## Standards` and `## Spec`, never merged or reranked: a change can pass one axis and fail the other. Fix small things or send it back; a rebuild after a failed review goes to `slice-builder-escalated`. A product decision the issue leaves open goes to the owner, never guessed; a product *question* becomes a `wayfinder:grilling` ticket on the relevant map, not an answer inside the slice.
 4. **Report and merge.** Tell the owner: PR, CI, what was checked, judgement calls, open points. Then merge (squash) once the review passes and CI is green, without asking. Wait for the owner's word only when the review or the builder flags a product decision the owner has not made, or the slice carries `escalate`. Where the repo has `scripts/ship.sh`, run `scripts/ship.sh <pr>` once: it waits for CI, merges, waits for the deploy and prints the deployed commit; otherwise gate the merge on `gh pr checks <pr> --watch --fail-fast && gh pr merge <pr> --squash` and watch the deploy run. Done when the deployed version is the merged commit, or, where the repo skips deploys for docs-only merges, when the two differ only by files that deploy ignores (the repo's own currency check says how).
 5. **Check and close.** The PR body's *After merge* section lists the slice's live checks, each marked *agent now*, *agent later (when)* or *owner*. Run every *agent now* check and post the evidence on the slice. Close it when every check passes. Each *agent later* or *owner* check becomes a **check task** (below) outside the slice; a failed check keeps the slice open and goes back to the builder, or to the owner when it is a product call. Done when the slice is closed or has a check task for everything still open. Then remove the builder's worktree and branch (where the repo has `scripts/prune-worktrees.sh`, a dry run and then `--apply`).
 
