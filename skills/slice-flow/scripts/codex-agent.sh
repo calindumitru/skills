@@ -69,7 +69,11 @@ trap 'rm -f "$prompt" "$log"' EXIT
   "${sandbox[@]}" -o "$report" - < "$prompt" 2>&1 | tee "$log" >&2
 status=${PIPESTATUS[0]}
 
-if grep -qiE 'usage limit|rate limit|not supported when using|model_not_found|does not exist or you do not have access|insufficient_quota' "$log"; then
+# A clean exit with a report is a success, whatever the log says: the log
+# also holds every file and diff the agent read, which can name a rate limit.
+[ "$status" -eq 0 ] && [ -s "$report" ] && exit 0
+# On failure, Codex's own error is at the end of the log.
+if tail -n 20 "$log" | grep -qiE 'usage limit|rate limit|not supported when using|model_not_found|does not exist or you do not have access|insufficient_quota'; then
   echo "codex-agent: GPT unavailable; start the Claude agent $agent" >&2
   exit 75
 fi
