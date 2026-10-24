@@ -10,11 +10,13 @@ Claude Code skills I use across projects.
 
 ## Install a skill
 
-Personal (every repo):
+Personal (every repo), as symlinks into this checkout, so an edit a session makes to an installed skill shows in `git status` here:
 
 ```bash
-for s in slice-flow setup-slice-flow; do rm -rf ~/.claude/skills/$s && cp -R skills/$s ~/.claude/skills/; done
+for s in slice-flow setup-slice-flow; do rm -rf ~/.claude/skills/$s && ln -s "$PWD/skills/$s" ~/.claude/skills/$s; done
 ```
+
+The installed skills follow this checkout's branch: keep it on `main`.
 
 Per project (teammates get it too): copy it to `<repo>/.claude/skills/`.
 

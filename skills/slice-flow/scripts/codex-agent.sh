@@ -32,6 +32,15 @@ codex=${CODEX:-$(command -v codex || true)}
   && codex=/Applications/ChatGPT.app/Contents/Resources/codex-cli/bin/codex
 if [ -z "$codex" ]; then echo "codex-agent: no Codex CLI found" >&2; exit 75; fi
 
+# A usage limit holds until the reset time Codex names: until then, answer 75
+# at once, before any worktree or run (the stamp holds the reset's epoch).
+stamp=${XDG_CACHE_HOME:-$HOME/.cache}/slice-flow/gpt-unavailable-until
+epoch_time() { date -d "@$1" '+%H:%M' 2>/dev/null || date -r "$1" '+%H:%M'; }
+if [ -s "$stamp" ] && [ "$(date +%s)" -lt "$(cat "$stamp")" ]; then
+  echo "codex-agent: GPT usage limit until $(epoch_time "$(cat "$stamp")"); start the Claude agent $agent" >&2
+  exit 75
+fi
+
 file=$repo/.claude/agents/$agent.md
 [ -f "$file" ] || file=$HOME/.claude/agents/$agent.md
 if [ ! -f "$file" ]; then echo "codex-agent: no agent file for $agent" >&2; exit 2; fi
@@ -107,6 +116,15 @@ status=${PIPESTATUS[0]}
 [ "$status" -eq 0 ] && [ -s "$report" ] && exit 0
 # On failure, Codex's own error is at the end of the log.
 if tail -n 20 "$log" | grep -qiE 'usage limit|rate limit|not supported when using|model_not_found|does not exist or you do not have access|insufficient_quota'; then
+  if tail -n 20 "$log" | grep -qiE 'usage limit|insufficient_quota'; then
+    # "try again at 2:25 AM": the next such time; else an hour from now.
+    at=$(tail -n 20 "$log" | grep -oiE 'try again at [0-9]{1,2}:[0-9]{2} ?[AP]M' | tail -1 | sed -E 's/^[Tt]ry again at //')
+    now=$(date +%s)
+    reset=$( [ -n "$at" ] && { date -d "$at" +%s 2>/dev/null || date -j -f '%I:%M %p' "$(echo "$at" | sed -E 's/ ?([AaPp][Mm])$/ \1/')" +%s 2>/dev/null; } )
+    [ -n "$reset" ] || reset=$((now + 3600))
+    [ "$reset" -gt "$now" ] || reset=$((reset + 86400))
+    mkdir -p "$(dirname "$stamp")" && echo "$reset" > "$stamp"
+  fi
   echo "codex-agent: GPT unavailable; start the Claude agent $agent" >&2
   exit 75
 fi
