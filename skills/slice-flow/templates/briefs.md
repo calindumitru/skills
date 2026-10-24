@@ -27,10 +27,10 @@ main session sends each only this:
 > <n>. <One line on what other builders touch, when it matters.>
 
 Two agents for a code PR (`slice-reviewer-standards`, `slice-reviewer-spec`),
-one for a docs-only PR (`slice-reviewer-docs`), each on the model pair in
-the `slice-flow` skill's *Models* (GPT first through
-`scripts/codex-agent.sh`, the Claude agent as fallback). The brief goes to
-the script as a file, or to the Agent tool as the prompt: the same text.
+one for a docs-only PR (`slice-reviewer-docs`), each GPT first through
+`scripts/codex-agent.sh` with the Claude agent as fallback (the `slice-flow`
+skill's *Models*; builders are the Claude agents). The brief goes to the
+script as a file, or to the Agent tool as the prompt: the same text.
 
 ## Report
 

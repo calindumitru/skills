@@ -12,7 +12,7 @@ Scaffold what the `slice-flow` skill and its builder agents assume in a repo. Pr
 
 - **Matt's skills:** `wayfinder`, `to-spec`, `to-tickets`, `code-review`, `tdd`, `pr`, `triage` and `setup-matt-pocock-skills` in `~/.claude/skills/` or `<repo>/.claude/skills/`. Name any that are missing; the flow calls them.
 - **His setup's output:** `docs/agents/issue-tracker.md`. Without it, stop and tell the owner to run `/setup-matt-pocock-skills` first: the tracker doc is where this setup appends.
-- **Prior output of this setup:** `.claude/agents/slice-builder-*.md` and `slice-reviewer-*.md`, `docs/building-slices.md`, `docs/agents/workflow.md`, a `## Slice flow` section in the tracker doc, a `### Slice flow` block in `CLAUDE.md` or `AGENTS.md`. Existing files get updated in place, never duplicated.
+- **Prior output of this setup:** the `~/.claude/agents/slice-*.md` symlinks, any repo-specific `.claude/agents/slice-reviewer-*.md`, `docs/building-slices.md`, `docs/agents/workflow.md`, a `## Slice flow` section in the tracker doc, a `### Slice flow` block in `CLAUDE.md` or `AGENTS.md`. Existing files get updated in place, never duplicated.
 - **The repo's own facts**, so you ask only for what it can't tell you: default branch (`git symbolic-ref refs/remotes/origin/HEAD`), package scripts or build files (install, typecheck, test, dev), a deploy workflow (`.github/workflows/*.yml` with a deploy job), a spec and glossary at the root, existing labels (`gh label list`).
 
 ## 2. Present and ask
@@ -29,7 +29,7 @@ Everything else is fixed by the flow and needs no question.
 
 ## 3. Write
 
-1. **Agents:** copy `../slice-flow/agents/*.md` into `<repo>/.claude/agents/`, replacing any `slice-builder-*` or `slice-reviewer-*` already there (five builders, three reviewers). Before replacing one, diff it with the skill's: a paragraph the repo added that names its own scripts or docs (a reviewer's `scripts/avoid-words.sh` step) stays, appended after the skill's text; a generic improvement made in the repo goes back to this skill's agents first, so the two don't drift.
+1. **Agents:** install them at user scope, not in the repo: `ln -sf ../skills/slice-flow/agents/slice-*.md ~/.claude/agents/` (five builders, three reviewers), so one copy serves every repo and a change to the skill reaches every session. A repo keeps its own copy of an agent only when it adds a paragraph that names the repo's scripts or docs (a reviewer's `scripts/avoid-words.sh` step), appended after the skill's text; the repo's copy wins over the user's. Remove any `slice-builder-*` or `slice-reviewer-*` in `<repo>/.claude/agents/` that is byte-for-byte the skill's, and take a generic improvement made in a repo's copy back to this skill's agents first, so the two don't drift.
 2. **`docs/building-slices.md`** from `../slice-flow/templates/building-slices.md`, with only the *Repo-specific* section's placeholders filled from the answers. Where the file already exists, keep any repo-specific content it has beyond that section only if the owner wants it; the generic steps come from the template.
 3. **Tracker doc:** append `../slice-flow/templates/issue-tracker-addendum.md` to `docs/agents/issue-tracker.md` unless a `## Slice flow` section is already there (then replace that section).
 4. **`docs/agents/workflow.md`** from `../slice-flow/templates/workflow.md`, as is.

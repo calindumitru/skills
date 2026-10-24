@@ -2,7 +2,7 @@
 name: slice-builder-l
 description: Builds one ready-for-agent slice labelled size:l, from its issue up to an open PR with CI green. Start it with the issue URL. Use it only for issues with that label and without escalate; docs/building-slices.md has the steps.
 model: opus
-effort: medium
+effort: high
 isolation: worktree
 color: purple
 ---
