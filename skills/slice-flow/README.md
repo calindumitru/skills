@@ -176,7 +176,7 @@ The script runs `codex exec` with the agent file's body and the brief as the pro
 1. Matt's skills, then this repo's two skills into `~/.claude/skills/` (the root README has the one-liner).
 2. In each repo: `/setup-matt-pocock-skills`, then `/setup-slice-flow`. The second one copies the agents, writes `docs/building-slices.md` with only its *Repo-specific* section asked about, appends to the tracker doc, writes `docs/agents/workflow.md`, creates the labels and points `CLAUDE.md` at it all.
 
-Sessions started outside a repo don't load its `.claude/agents/`: install the agents at user scope (`ln -s ~/.claude/skills/slice-flow/agents/slice-*.md ~/.claude/agents/`), or the skill falls back to a general-purpose agent on Opus medium with worktree isolation. The GPT path needs the Codex CLI signed in (`codex login`); the script also finds the copy inside the ChatGPT app.
+The agents live at user scope (`ln -s ~/.claude/skills/slice-flow/agents/slice-*.md ~/.claude/agents/`), one copy for every repo; a repo holds its own copy only of an agent it adds a repo-specific step to, and that copy wins. Without the user-scope links the skill falls back to a general-purpose agent on Opus medium with worktree isolation. The GPT path needs the Codex CLI signed in (`codex login`); the script also finds the copy inside the ChatGPT app.
 
 ## Example prompts
 
