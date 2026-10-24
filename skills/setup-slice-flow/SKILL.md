@@ -29,7 +29,7 @@ Everything else is fixed by the flow and needs no question.
 
 ## 3. Write
 
-1. **Agents:** copy `../slice-flow/agents/*.md` into `<repo>/.claude/agents/`, replacing any `slice-builder-*` or `slice-reviewer-*` already there (five builders, three reviewers).
+1. **Agents:** copy `../slice-flow/agents/*.md` into `<repo>/.claude/agents/`, replacing any `slice-builder-*` or `slice-reviewer-*` already there (five builders, three reviewers). Before replacing one, diff it with the skill's: a paragraph the repo added that names its own scripts or docs (a reviewer's `scripts/avoid-words.sh` step) stays, appended after the skill's text; a generic improvement made in the repo goes back to this skill's agents first, so the two don't drift.
 2. **`docs/building-slices.md`** from `../slice-flow/templates/building-slices.md`, with only the *Repo-specific* section's placeholders filled from the answers. Where the file already exists, keep any repo-specific content it has beyond that section only if the owner wants it; the generic steps come from the template.
 3. **Tracker doc:** append `../slice-flow/templates/issue-tracker-addendum.md` to `docs/agents/issue-tracker.md` unless a `## Slice flow` section is already there (then replace that section).
 4. **`docs/agents/workflow.md`** from `../slice-flow/templates/workflow.md`, as is.

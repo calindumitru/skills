@@ -56,6 +56,9 @@ whole route is in [docs/agents/workflow.md](agents/workflow.md).
      paint.
 5. **Update the docs** the issue's Docs section names.
 6. **Open the PR** to the default branch. Commit in small steps and push.
+   Open it as a draft at the first commit that passes the typecheck, and
+   mark it ready when CI is green: a builder cut off mid-run leaves a branch
+   the next one starts from, not files in a worktree.
    - **Title:** an imperative sentence naming the change.
    - **Body:** call the Skill tool with `pr` (Summary, Evidence, Merge
      Danger), then add one more section, **After merge**: what the deploy
@@ -75,10 +78,13 @@ whole route is in [docs/agents/workflow.md](agents/workflow.md).
 7. **Never:** merge, deploy or re-run a deploy; change repository settings
    or variables; print a secret or anyone's email. *Repo-specific* adds the
    repo's own never-rules.
-8. **Report back** to the main session: the PR URL and CI state; what you
-   checked, with numbers; your judgement calls; anything left open. If the
+8. **Report back** to the main session in the shape `docs/agents/briefs.md`
+   → Report gives (else this skill's `templates/briefs.md`). If the
    issue leaves a **product decision** open, stop and report it rather than
-   guess.
+   guess. A SPEC or CONTEXT.md edit the issue doesn't ask for is such a
+   decision: leave both files as the issue left them, and name the call
+   with the issue's line it departs from under Open points in the report and
+   in the PR's Summary.
 
 ## Slices built from a prototype
 
