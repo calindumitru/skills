@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Run one slice-flow agent on GPT through the Codex CLI: the first choice for
-# every size and every reviewer. The Claude agent of the same name is the
-# fallback.
+# the reviewers (SKILL.md, Models). The Claude agent of the same name is the
+# fallback. Builders run on Claude; the script still runs one when asked.
 #
 # Usage: codex-agent.sh <agent-name> <repo-dir> <brief-file> <report-file>
 #   agent-name   slice-builder-* or slice-reviewer-*; its file is read from
@@ -14,18 +14,25 @@
 #   report-file  where the agent's last message (its report) is written.
 #
 # Exit 0: the report is in <report-file>.
-# Exit 75: GPT is unavailable (no Codex CLI, usage limit, model refused).
-#          Start the Claude agent of the same name instead.
-# Other non-zero: the GPT run failed. Fall back to the Claude agent too;
-#          a failed run is not retried on GPT.
+# Exit 75: GPT is unavailable (no Codex CLI, usage limit, model refused), or
+#          the last Codex run left too little of a usage window for another
+#          agent. Start the Claude agent of the same name instead.
+# Other non-zero: the GPT run failed, or a builder's report names no PR and
+#          no open decision. Fall back to the Claude agent too; a failed run
+#          is not retried on GPT.
 #
-# SLICE_GPT_MODEL (default gpt-6.1-sol) and SLICE_GPT_EFFORT (default xhigh)
-# override the choice; CODEX overrides the CLI path.
+# SLICE_GPT_MODEL (default gpt-6.1-sol) and SLICE_GPT_EFFORT (default high)
+# override the choice; CODEX overrides the CLI path. SLICE_GPT_PRIMARY_MAX
+# (default 70) and SLICE_GPT_WEEKLY_MAX (default 85) are the used-percent
+# ceilings on the 5-hour and weekly windows above which no agent starts: a
+# reviewer uses 10 to 15 points of the 5-hour window, a builder 50 to 85.
 set -uo pipefail
 
 agent=${1:?agent name}; repo=${2:?repo dir}; brief=${3:?brief file}; report=${4:?report file}
 model=${SLICE_GPT_MODEL:-gpt-6.1-sol}
-effort=${SLICE_GPT_EFFORT:-xhigh}
+effort=${SLICE_GPT_EFFORT:-high}
+primary_max=${SLICE_GPT_PRIMARY_MAX:-70}
+weekly_max=${SLICE_GPT_WEEKLY_MAX:-85}
 
 codex=${CODEX:-$(command -v codex || true)}
 [ -z "$codex" ] && [ -x /Applications/ChatGPT.app/Contents/Resources/codex-cli/bin/codex ] \
@@ -39,6 +46,43 @@ epoch_time() { date -d "@$1" '+%H:%M' 2>/dev/null || date -r "$1" '+%H:%M'; }
 if [ -s "$stamp" ] && [ "$(date +%s)" -lt "$(cat "$stamp")" ]; then
   echo "codex-agent: GPT usage limit until $(epoch_time "$(cat "$stamp")"); start the Claude agent $agent" >&2
   exit 75
+fi
+
+# Headroom: the newest Codex rollout's last rate-limit record says how much of
+# each usage window the previous run left, and when the window resets (a run
+# that hit the limit logs a record without numbers, so walk back to one that
+# has them). Above the ceiling, stamp the reset time and answer 75 before any
+# worktree or run.
+headroom=$(ls -t "${CODEX_HOME:-$HOME/.codex}"/sessions/*/*/*/rollout-*.jsonl 2>/dev/null | head -8 \
+  | xargs -I{} sh -c 'grep -o "\"rate_limits\":{.*" "{}" | tail -1' 2>/dev/null \
+  | python3 -I -c '
+import sys,json
+for raw in sys.stdin:
+    raw=raw.strip()[len("\"rate_limits\":"):]
+    depth=0
+    for i,ch in enumerate(raw):
+        depth+= ch=="{"; depth-= ch=="}"
+        if depth==0: raw=raw[:i+1]; break
+    try: rl=json.loads(raw)
+    except Exception: continue
+    p=rl.get("primary"); s=rl.get("secondary")
+    if not p or p.get("used_percent") is None: continue
+    s=s or {}
+    print(int(p.get("used_percent") or 0), int(p.get("resets_at") or 0), int(s.get("used_percent") or 0), int(s.get("resets_at") or 0))
+    break' 2>/dev/null)
+if [ -n "$headroom" ]; then
+  read -r p_used p_reset s_used s_reset <<< "$headroom"
+  now=$(date +%s)
+  if [ "$p_used" -gt "$primary_max" ] && [ "$p_reset" -gt "$now" ]; then
+    mkdir -p "$(dirname "$stamp")" && echo "$p_reset" > "$stamp"
+    echo "codex-agent: GPT 5-hour window $p_used% used (ceiling $primary_max%), resets $(epoch_time "$p_reset"); start the Claude agent $agent" >&2
+    exit 75
+  fi
+  if [ "$s_used" -gt "$weekly_max" ] && [ "$s_reset" -gt "$now" ]; then
+    mkdir -p "$(dirname "$stamp")" && echo "$s_reset" > "$stamp"
+    echo "codex-agent: GPT weekly window $s_used% used (ceiling $weekly_max%), resets $(date -d "@$s_reset" '+%a %H:%M' 2>/dev/null || date -r "$s_reset" '+%a %H:%M'); start the Claude agent $agent" >&2
+    exit 75
+  fi
 fi
 
 file=$repo/.claude/agents/$agent.md
@@ -113,7 +157,20 @@ status=${PIPESTATUS[0]}
 
 # A clean exit with a report is a success, whatever the log says: the log
 # also holds every file and diff the agent read, which can name a rate limit.
-[ "$status" -eq 0 ] && [ -s "$report" ] && exit 0
+# A builder's report must name its PR, or the open decision that stopped it:
+# a run that ends with neither (a sandbox denied git, #707) is a failed run.
+if [ "$status" -eq 0 ] && [ -s "$report" ]; then
+  case $agent in
+    slice-builder-*)
+      if ! grep -qE 'github\.com/[^ )]+/pull/[0-9]+' "$report" \
+         && ! grep -qiE 'product decision|open decision|blocked on|left open' "$report"; then
+        snapshot
+        echo "codex-agent: the GPT builder reported no PR and no open decision; start the Claude agent $agent" >&2
+        exit 1
+      fi ;;
+  esac
+  exit 0
+fi
 # On failure, Codex's own error is at the end of the log.
 if tail -n 20 "$log" | grep -qiE 'usage limit|rate limit|not supported when using|model_not_found|does not exist or you do not have access|insufficient_quota'; then
   if tail -n 20 "$log" | grep -qiE 'usage limit|insufficient_quota'; then
