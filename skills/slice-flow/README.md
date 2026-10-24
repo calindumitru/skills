@@ -167,7 +167,7 @@ From the cost-vs-intelligence Pareto frontier on [slopalytics.com](https://slopa
 
 Per-size pairs, for when the owner splits them again: s on GPT-6.1 Sol low (42.1, $0.13) with Haiku xhigh (41.2, $0.12) as fallback; l on Opus high (53.6, $1.82) with GPT-6.1 Sol xhigh; escalate on Opus xhigh (56.0, $3.46) with GPT-6 Astra xhigh (52.4, $2.31). Re-check the chart when new models ship, and update SKILL.md, this table, the agents and the script's defaults together.
 
-The script runs `codex exec` with the agent file's body and the brief as the prompt. A builder gets a fresh worktree and a sandbox that writes only there and in the repo's git dir, with network on for `git push` and `gh`; a reviewer runs read-only. It exits 75 when GPT is unavailable (no CLI, a usage limit, a refused model), so the main session starts the Claude agent instead.
+The script runs `codex exec` with the agent file's body and the brief as the prompt. A builder gets a fresh worktree and a sandbox that writes only there and in the repo's git dir, with network on for `git push` and `gh`; a reviewer runs read-only. It exits 75 when GPT is unavailable (no CLI, a usage limit, a refused model), so the main session starts the Claude agent instead. A usage limit is remembered until the reset time Codex names (`~/.cache/slice-flow/gpt-unavailable-until`): until then the script exits 75 before making a worktree.
 
 ## Install
 
