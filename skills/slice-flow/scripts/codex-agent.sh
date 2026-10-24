@@ -52,8 +52,36 @@ case $agent in
   *) echo "codex-agent: $agent is not a slice-flow agent" >&2; exit 2 ;;
 esac
 
-prompt=$(mktemp); log=$(mktemp)
-trap 'rm -f "$prompt" "$log"' EXIT
+prompt=$(mktemp); log=$(mktemp); ctx=$(mktemp -d)
+trap 'rm -rf "$prompt" "$log" "$ctx"' EXIT
+
+# A reviewer's sandbox has no network, so it can't run gh: copy what it reads from
+# GitHub (the issue with its comments, the PR body, CI) into files it can read.
+# The brief names them as "PR <n>" and "issue <n>" (docs/agents/briefs.md).
+if [ "${agent#slice-reviewer-}" != "$agent" ]; then
+  pr=$(grep -oE 'PR #?[0-9]+' "$brief" | head -1 | grep -oE '[0-9]+')
+  issue=$(grep -oE 'issue #?[0-9]+' "$brief" | head -1 | grep -oE '[0-9]+')
+  if [ -n "$issue" ]; then
+    (cd "$dir" && gh issue view "$issue" --json title,body,comments \
+      --jq '"# \(.title)\n\n\(.body)\n\n## Comments\n\(.comments|map(.body)|join("\n\n---\n\n"))"') > "$ctx/issue.md" 2>&1
+  fi
+  if [ -n "$pr" ]; then
+    (cd "$dir" && gh pr view "$pr" --json title,body --jq '"# \(.title)\n\n\(.body)"') > "$ctx/pr.md" 2>&1
+    (cd "$dir" && gh pr checks "$pr") > "$ctx/ci.txt" 2>&1
+  fi
+fi
+
+# A builder cut off mid-run (the session ended) keeps its work: commit whatever
+# the worktree holds to a wip/ branch and push it, so the next builder starts from it.
+snapshot() {
+  case $agent in slice-builder-*) ;; *) return ;; esac
+  [ -n "$(git -C "$dir" status --porcelain 2>/dev/null)" ] || return
+  branch=$(git -C "$dir" branch --show-current)
+  [ -n "$branch" ] || { branch=wip/$(basename "$dir"); git -C "$dir" switch -q -c "$branch"; }
+  git -C "$dir" add -A && git -C "$dir" commit -q -m "WIP: snapshot of an interrupted $agent run" --no-verify \
+    && git -C "$dir" push -q -u origin "$branch" && echo "codex-agent: interrupted; work pushed to $branch" >&2
+}
+trap 'snapshot; exit 130' INT TERM HUP
 {
   echo "You are the $agent agent of the slice flow, running on $model through Codex."
   echo "Your instructions are below; read CLAUDE.md where they say so (Codex does not load it for you)."
@@ -63,6 +91,11 @@ trap 'rm -f "$prompt" "$log"' EXIT
   echo "## Brief"
   echo
   cat "$brief"
+  if [ -n "$(ls -A "$ctx")" ]; then
+    echo
+    echo "Your sandbox has no network, so gh fails. Read GitHub from these copies, made just now:"
+    for f in "$ctx"/*; do echo "- $f"; done
+  fi
 } > "$prompt"
 
 "$codex" exec --skip-git-repo-check -C "$dir" -m "$model" -c model_reasoning_effort="$effort" \
@@ -78,6 +111,7 @@ if tail -n 20 "$log" | grep -qiE 'usage limit|rate limit|not supported when usin
   exit 75
 fi
 if [ "$status" -ne 0 ] || [ ! -s "$report" ]; then
+  snapshot
   echo "codex-agent: GPT run failed (exit $status); start the Claude agent $agent" >&2
   exit "$(( status == 0 ? 1 : status ))"
 fi
