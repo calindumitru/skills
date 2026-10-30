@@ -7,13 +7,15 @@ Claude Code skills I use across projects.
 | [slice-flow](skills/slice-flow) | My way of working on top of [Matt Pocock's engineering skills](https://github.com/mattpocock/skills): one `ready-for-agent` ticket goes to a builder agent picked by size label (GPT-6.1 Sol first, Claude Opus as fallback), up to an open PR; the main session reviews and merges, and the ticket closes only once it is live and checked. Comes with the workflow map, the builder agents and the repo templates. |
 | [setup-slice-flow](skills/setup-slice-flow) | Wires a repo for the slice flow in one run: agents, `docs/building-slices.md`, the tracker additions (abandoned claims, fold-in ticket), the workflow map, the labels and the `CLAUDE.md` pointer. |
 | [db-migration-review](skills/db-migration-review) | Grades Liquibase changesets (XML, YAML, formatted SQL) by blue-green deployment risk on a hot Postgres database. Python checker with a CI exit code, plus the Claude skill that judges the rest. |
+| [fun-briefs](skills/fun-briefs) | Turns research, a wayfinder map or a long document into a brief that is fun to read and still accurate: a playable card deck (four worlds, quizzes, guesses, the reader's decisions as a boss level, saved progress, calm mode), designed from graded evidence on keeping readers with ADHD engaged. |
+| [fun-grilling](skills/fun-grilling) | A layer over `grilling`: a map of the design tree, rounds through the question UI with previews, a payoff after every round (settled, unlocked, ruled out, what's left), varied question formats, playbacks, pause points and a closing decision card. Install with `fun-briefs`, whose evidence file it reads. |
 
 ## Install a skill
 
 Personal (every repo), as symlinks into this checkout, so an edit a session makes to an installed skill shows in `git status` here:
 
 ```bash
-for s in slice-flow setup-slice-flow; do rm -rf ~/.claude/skills/$s && ln -s "$PWD/skills/$s" ~/.claude/skills/$s; done
+for s in slice-flow setup-slice-flow fun-briefs fun-grilling; do rm -rf ~/.claude/skills/$s && ln -s "$PWD/skills/$s" ~/.claude/skills/$s; done
 ```
 
 The installed skills follow this checkout's branch: keep it on `main`.
