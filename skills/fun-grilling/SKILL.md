@@ -6,7 +6,8 @@ description: Make a grilling session engaging without making it lighter. Show a 
 # Fun grilling
 
 This runs on top of `grilling`, which still decides *what* to ask: the design tree, the frontier, one
-round at a time, a recommended answer for each question. This skill decides how a round *feels*.
+round at a time, a recommended answer for each question. This skill decides how a round *feels*, and
+how much of the frontier a round shows: usually one question, not the whole frontier.
 The reader it is designed for discounts delayed rewards steeply and gets bored easily, so each round
 has to pay off on its own instead of saving the reward for the end of the session. The rules come
 from [`../fun-briefs/references/evidence.md`](../fun-briefs/references/evidence.md), graded there.
@@ -19,13 +20,22 @@ Before round 1, send one short message:
 
 - **The goal in one line**, and what the user will hold when the session ends ("a settled pricing model and three tickets").
 - **The tree as branches:** a compact list of the areas still to decide, each with its rough number of
-  decisions, then the total in plain units: "about 12 decisions, 4 rounds".
+  decisions, then the total in plain units: "about 12 decisions".
 - **The exit:** say that "park" at any point saves the ledger and stops, and resuming costs nothing.
 
 ## Run each round
 
-Ask the round's frontier through the question UI (`AskUserQuestion`): at most four questions, so a
-bigger frontier becomes two rounds.
+Ask through the question UI (`AskUserQuestion`), **one question per round** by default. Pick the
+frontier question whose answer is most likely to reframe the others, and ask it alone. A question
+the user doesn't follow, or thinks is irrelevant, holds up every question asked beside it, and an
+answer can make its neighbours moot even when the tree says they're independent.
+
+- **Batch only the small stuff:** up to four questions in one round only when each is quick, plainly
+  worded and can't change the wording or relevance of the others (which formats to allow, a naming
+  choice).
+- **When the user asks for an explanation** or answers off-script, settle that question on its own
+  in the next round, with the explanation in plain words or a picture. Don't put it back in a batch
+  with new questions.
 
 - **Header chip:** the branch name, kept short ("Pricing").
 - **Options:** concrete labels of five words or fewer. Put your recommendation first, marked "(Recommended)".
@@ -52,7 +62,7 @@ After the answers, before the next round, send a short message:
 ✅ Settled: <decision>, <decision>
 🔓 Unlocked: <the questions these answers made askable>
 ✂️ Ruled out: <options or branches now gone>
-<N> decisions left · ~<R> rounds
+<N> decisions left
 ```
 
 Add one line of consequence when an answer changes something non-obvious ("so the API needs a
@@ -60,7 +70,7 @@ version field"). These three emoji are the only ones. If a bet was placed, revea
 
 ## Playback and pause points
 
-When a branch closes, or after every third round, give a **playback**: the branch's decisions in
+When a branch closes, or after about every five decisions, give a **playback**: the branch's decisions in
 three lines or fewer. Then offer the user a choice between going on and parking.
 
 To **park**, write the ledger where the grilling records its outcome (the wayfinder ticket's comment,
