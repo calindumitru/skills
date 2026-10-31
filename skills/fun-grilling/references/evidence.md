@@ -1,8 +1,8 @@
 # Engagement evidence
 
 What research says keeps a reader with ADHD engaged with self-paced material, graded by evidence
-strength. Both `fun-briefs` and `fun-grilling` design from this table; it is their single source of
-truth. Full findings (56 sources, effect sizes, verification notes):
+strength. `fun-grilling` designs from this table. It came from the retired `fun-briefs` skill, and
+Ludify keeps its own copy in `docs/evidence.md` for its decks. Full findings (56 sources, effect sizes, verification notes):
 https://github.com/calindumitru/funvenio/blob/research/adhd-learning-engagement/research/adhd-learning-engagement-2026-10-30/findings.md
 (October 2026).
 

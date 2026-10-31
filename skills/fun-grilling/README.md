@@ -9,4 +9,4 @@ A layer over Matt Pocock's `grilling` that makes a session engaging without maki
 - There are playbacks and painless pause points, and it closes with a decision card.
 
 It fires alongside `grilling` (and so on wayfinder grilling tickets). Its rules come from
-`../fun-briefs/references/evidence.md`, so install it together with `fun-briefs`.
+[`references/evidence.md`](references/evidence.md).
