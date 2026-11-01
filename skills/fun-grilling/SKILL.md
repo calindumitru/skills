@@ -10,7 +10,7 @@ round at a time, a recommended answer for each question. This skill decides how 
 how much of the frontier a round shows: usually one question, not the whole frontier.
 The reader it is designed for discounts delayed rewards steeply and gets bored easily, so each round
 has to pay off on its own instead of saving the reward for the end of the session. The rules come
-from [`../fun-briefs/references/evidence.md`](../fun-briefs/references/evidence.md), graded there.
+from [`references/evidence.md`](references/evidence.md), graded there.
 In this skill a **payoff** is visible progress plus an explained consequence. Points, scores and
 streaks are not used (the evidence grades them no-evidence or harmful).
 
